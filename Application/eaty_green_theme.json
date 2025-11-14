@@ -1,0 +1,22 @@
+{
+  "CTk": {
+    "color_theme_name": "Eaty Green Theme",
+
+    "theme": {
+      "primary_color": ["#4CAF50", "#45A049"],
+      "secondary_color": ["#81C784", "#66BB6A"],
+      "accent_color": ["#A5D6A7", "#81C784"],
+
+      "button_color": ["#4CAF50", "#45A049"],
+      "button_hover_color": ["#66BB6A", "#5DAF63"],
+
+      "entry_border_color": ["#4CAF50", "#388E3C"],
+      "entry_placeholder_color": ["#7EBF7E", "#A7D7A7"],
+
+      "checkbox_color": ["#4CAF50", "#45A049"],
+      "progress_color": ["#4CAF50", "#45A049"],
+
+      "frame_low_color": ["#E8F5E9", "#1B5E20"]
+    }
+  }
+}
