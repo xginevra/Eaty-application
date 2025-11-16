@@ -45,14 +45,13 @@ def calculate_body_fat(bmi, age, gender):
 # ----------------------------------------
 # Global styling
 # ----------------------------------------
-CARD = 'p-6 rounded-xl shadow-lg bg-white border border-emerald-100'
-WIDE_CARD = 'p-6 rounded-xl shadow-lg bg-white w-full border border-emerald-100'
+CARD = 'p-6 rounded-xl shadow-lg bg-amber-50 border border-emerald-100'
+WIDE_CARD = 'p-6 rounded-xl shadow-lg bg-amber-50 w-full border border-emerald-100'
 BTN = 'bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors'
 BTN_SECONDARY = 'bg-emerald-500 text-white px-6 py-2 rounded-lg hover:bg-emerald-600 border-2 border-emerald-600 transition-colors'
 TITLE = 'text-3xl font-bold mb-6 text-emerald-900'
 SECTION_TITLE = 'text-xl font-bold mb-3 text-emerald-800'
 PAGE_BG = 'bg-gradient-to-br from-emerald-50 to-teal-50 min-h-screen'
-
 
 # ----------------------------------------
 # Top Navigation Bar
@@ -61,10 +60,9 @@ def navbar():
     with ui.header().classes('bg-gradient-to-r from-emerald-600 to-teal-600 shadow-lg items-center px-6 py-3'):
         ui.label("🥗 Eaty").classes('text-2xl font-bold text-white')
         ui.space()
-        ui.button("Home", on_click=lambda: ui.navigate.to('/')).classes('mx-2 text-white hover:bg-emerald-700 rounded-lg px-4 py-2')
-        ui.button("Add Log", on_click=lambda: ui.navigate.to('/add-log')).classes('mx-2 text-white hover:bg-emerald-700 rounded-lg px-4 py-2')
-        ui.button("My Data", on_click=lambda: ui.navigate.to('/change-data')).classes('mx-2 text-white hover:bg-emerald-700 rounded-lg px-4 py-2')
-
+        ui.button("Home", on_click=lambda: ui.navigate.to('/')).props('color=teal-6 text-color=white flat').classes('mx-2').style('border: 2px solid #fef3c7;')
+        ui.button("Add Log", on_click=lambda: ui.navigate.to('/add-log')).props('color=teal-6 text-color=white flat').classes('mx-2').style('border: 2px solid #fef3c7;')
+        ui.button("My Data", on_click=lambda: ui.navigate.to('/change-data')).props('color=teal-6 text-color=white flat').classes('mx-2').style('border: 2px solid #fef3c7;')
 
 # ----------------------------------------
 # Home Page
@@ -99,7 +97,7 @@ def home():
     if not user:
         with ui.column().classes('items-center mt-20'):
             ui.label("No user found. Please add your data first.").classes(TITLE)
-            ui.button("➕ Add User", on_click=lambda: ui.navigate.to('/new-user')).classes(BTN)
+            ui.button("➕ Add User", on_click=lambda: ui.navigate.to('/new-user')).classes(BTN).props('color=teal-6 text-color=white')
         return
 
     user_id = user['id']
@@ -168,7 +166,7 @@ def home():
                                     ui.notify("Weight updated!", type='positive')
                                     ui.navigate.to('/')
 
-                            ui.button("Update Weight", on_click=update_weight).classes(BTN + " mt-3 w-full")
+                            ui.button("Update Weight", on_click=update_weight).classes(BTN + " mt-3 w-full").props('color=teal-6 text-color=white')
                         
                         # Meal Logging Panel
                         with ui.tab_panel(meal_tab):
@@ -190,7 +188,7 @@ def home():
                                 else:
                                     ui.notify("Please fill in description and calories", type='warning')
 
-                            ui.button("Log Meal", on_click=log_meal).classes(BTN + " mt-3 w-full")
+                            ui.button("Log Meal", on_click=log_meal).classes(BTN + " mt-3 w-full").props('color=teal-6 text-color=white')
                         
                         # Exercise Logging Panel
                         with ui.tab_panel(exercise_tab):
@@ -213,7 +211,7 @@ def home():
                                 else:
                                     ui.notify("Please fill in description and calories", type='warning')
 
-                            ui.button("Log Exercise", on_click=log_exercise).classes(BTN + " mt-3 w-full")
+                            ui.button("Log Exercise", on_click=log_exercise).classes(BTN + " mt-3 w-full").props('color=teal-6 text-color=white')
                     
                     ui.separator().classes('my-3 bg-emerald-200')
                     
@@ -272,9 +270,9 @@ def home():
                 
                 # Toggle Buttons
                 with ui.row().classes('w-full justify-center gap-4 mb-4'):
-                    weight_btn = ui.button("📈 Weight", on_click=lambda: switch_view('weight')).classes(BTN)
-                    calories_btn = ui.button("🔥 Calories", on_click=lambda: switch_view('calories')).classes(BTN_SECONDARY)
-                    logs_btn = ui.button("🗒️ Logs", on_click=lambda: switch_view('logs')).classes(BTN_SECONDARY)
+                    weight_btn = ui.button("📈 Weight", on_click=lambda: switch_view('weight')).props('color=teal-7 flat text-color=white flat')
+                    calories_btn = ui.button("🔥 Calories", on_click=lambda: switch_view('calories')).props('color=teal-5 flat text-color=white flat')
+                    logs_btn = ui.button("🗒️ Logs", on_click=lambda: switch_view('logs')).props('color=teal-5 flat text-color=white flat')
                 
                 # Content Container with flip animation
                 content_container = ui.column().classes('w-full').style(
@@ -290,7 +288,12 @@ def home():
                             if history:
                                 df = pd.DataFrame(history)
                                 fig = px.line(df, x='Day', y='Weight', markers=True)
-                                fig.update_traces(line_color='#059669', marker=dict(color='#059669', size=8))
+                                fig.update_traces(
+                                    line_color='#059669', 
+                                    marker=dict(color='#059669', size=8),
+                                    line_shape='spline',  # This makes it smooth!
+                                    line=dict(width=3, shape='spline')
+                                )
                                 fig.update_layout(
                                     plot_bgcolor='rgba(0,0,0,0)',
                                     paper_bgcolor='rgba(0,0,0,0)',
@@ -346,7 +349,7 @@ def home():
                                         if cumulative_data:
                                             df_cumulative = pd.DataFrame(cumulative_data)
                                             
-                                            # Create figure
+                                            # Create figure with smooth lines
                                             fig = px.line(df_cumulative, x='time', y=['Intake', 'Burned', 'Net'],
                                                         color_discrete_map={
                                                             'Intake': '#10b981',
@@ -354,6 +357,20 @@ def home():
                                                             'Net': '#3b82f6'
                                                         },
                                                         markers=True)
+                                            
+                                            # Make lines smooth
+                                            fig.update_traces(line_shape='spline', line=dict(width=3))
+                                            
+                                            # Add average intake line
+                                            avg_intake = df_cumulative['Intake'].iloc[-1] / len(df_cumulative) if len(df_cumulative) > 0 else 0
+                                            if avg_intake > 0:
+                                                fig.add_hline(
+                                                    y=avg_intake, 
+                                                    line_dash="dash", 
+                                                    line_color="#6ee7b7",
+                                                    annotation_text=f"Avg Rate: {int(avg_intake)} cal/entry",
+                                                    annotation_position="right"
+                                                )
                                             
                                             fig.update_layout(
                                                 plot_bgcolor='rgba(0,0,0,0)',
@@ -439,19 +456,19 @@ def home():
                     if view_state['current'] != view:
                         view_state['current'] = view
                         
-                        # Update button styles
+                        # Update button props
                         if view == 'weight':
-                            weight_btn.classes(replace=BTN)
-                            calories_btn.classes(replace=BTN_SECONDARY)
-                            logs_btn.classes(replace=BTN_SECONDARY)
+                            weight_btn.props('color=teal-7 flat text-color=white flat')
+                            calories_btn.props('color=teal-5 flat text-color=white flat')
+                            logs_btn.props('color=teal-5 flat text-color=white flat')
                         elif view == 'calories':
-                            weight_btn.classes(replace=BTN_SECONDARY)
-                            calories_btn.classes(replace=BTN)
-                            logs_btn.classes(replace=BTN_SECONDARY)
+                            weight_btn.props('color=teal-5 flat text-color=white flat')
+                            calories_btn.props('color=teal-7 flat text-color=white flat')
+                            logs_btn.props('color=teal-5 flat text-color=white flat')
                         else:
-                            weight_btn.classes(replace=BTN_SECONDARY)
-                            calories_btn.classes(replace=BTN_SECONDARY)
-                            logs_btn.classes(replace=BTN)
+                            weight_btn.props('color=teal-5 flat text-color=white flat')
+                            calories_btn.props('color=teal-5 flat text-color=white flat')
+                            logs_btn.props('color=teal-7 flat text-color=white flat')
                         
                         # Animate flip
                         content_container.style('opacity: 0; transform: rotateY(90deg);')
@@ -473,24 +490,26 @@ def new_user():
     with ui.column().classes('w-full items-center mt-6 px-6'):
         ui.label("➕ Add User").classes(TITLE)
 
-        with ui.row().classes('gap-6 w-full max-w-6xl'):
-            # Left column: Personal Info
+        with ui.row().classes('gap-6 w-full max-w-6xl').style('flex-wrap: nowrap;'):
+            # Left column - Personal Info
             with ui.column().classes('flex-1 gap-4'):
                 with ui.card().classes(CARD):
                     ui.label('👤 Personal Information').classes(SECTION_TITLE)
                     name = ui.input('Name').classes('w-full')
                     age = ui.number('Age').classes('w-full')
                     gender = ui.select(['Male', 'Female'], label='Gender').classes('w-full')
-                    
-                    ui.separator().classes('my-4 bg-emerald-200')
-                    ui.label('📏 Body Measurements').classes(SECTION_TITLE)
                     height = ui.number('Height (cm)').classes('w-full')
                     weight = ui.number('Weight (kg)').classes('w-full')
+
+            # Middle column - Body Measurements
+            with ui.column().classes('flex-1 gap-4'):
+                with ui.card().classes(CARD):
+                    ui.label('📏 Body Measurements').classes(SECTION_TITLE)
                     neck = ui.number('Neck (cm)').classes('w-full')
                     waist = ui.number('Waist (cm)').classes('w-full')
                     hip = ui.number('Hip (cm)').classes('w-full')
 
-            # Right column: Activity & Goals
+            # Right column - Activity & Goals
             with ui.column().classes('flex-1 gap-4'):
                 with ui.card().classes(CARD):
                     ui.label('🎯 Activity & Goals').classes(SECTION_TITLE)
@@ -499,10 +518,9 @@ def new_user():
                     
                     ui.separator().classes('my-4 bg-emerald-200')
                     ui.label('ℹ️ Instructions').classes(SECTION_TITLE)
-                    ui.label('Fill in all information accurately. BMI, BMR, and body fat % will be calculated automatically.').classes('text-gray-600 mb-2')
+                    ui.label('Fill in all information accurately. BMI, BMR, and body fat % will be calculated automatically.').classes('text-gray-600 mb-2 text-sm')
                     ui.label('• Height and weight are required').classes('text-sm text-gray-500')
                     ui.label('• Body measurements help track progress').classes('text-sm text-gray-500')
-                    ui.label('• Activity level affects calorie recommendations').classes('text-sm text-gray-500')
 
         def submit():
             bmi = calculate_bmi(weight.value, height.value)
@@ -531,7 +549,7 @@ def new_user():
             ui.navigate.to('/')
 
         with ui.row().classes('w-full max-w-6xl mt-4'):
-            ui.button("💾 Save User Data", on_click=submit).classes(BTN + " w-full")
+            ui.button("💾 Save User Data", on_click=submit).classes(BTN + " w-full").props('color=teal-6 text-color=white')
 
 
 # ----------------------------------------
@@ -551,24 +569,26 @@ def change_data():
     with ui.column().classes('w-full items-center mt-6 px-6'):
         ui.label("✏️ Edit User Data").classes(TITLE)
 
-        with ui.row().classes('gap-6 w-full max-w-6xl'):
-            # Left column
+        with ui.row().classes('gap-6 w-full max-w-6xl').style('flex-wrap: nowrap;'):
+            # Left column - Personal Info
             with ui.column().classes('flex-1 gap-4'):
                 with ui.card().classes(CARD):
                     ui.label('👤 Personal Information').classes(SECTION_TITLE)
                     name = ui.input('Name', value=user['name']).classes('w-full')
                     age = ui.number('Age', value=user['age']).classes('w-full')
                     gender = ui.select(['Male', 'Female'], value=user['gender'], label='Gender').classes('w-full')
-                    
-                    ui.separator().classes('my-4 bg-emerald-200')
-                    ui.label('📏 Body Measurements').classes(SECTION_TITLE)
                     height = ui.number('Height (cm)', value=user['height_cm']).classes('w-full')
                     weight = ui.number('Weight (kg)', value=user['weight_kg']).classes('w-full')
+
+            # Middle column - Body Measurements
+            with ui.column().classes('flex-1 gap-4'):
+                with ui.card().classes(CARD):
+                    ui.label('📏 Body Measurements').classes(SECTION_TITLE)
                     neck = ui.number('Neck (cm)', value=user['neck_cm']).classes('w-full')
                     waist = ui.number('Waist (cm)', value=user['waist_cm']).classes('w-full')
                     hip = ui.number('Hip (cm)', value=user['hip_cm']).classes('w-full')
 
-            # Right column
+            # Right column - Activity & Goals
             with ui.column().classes('flex-1 gap-4'):
                 with ui.card().classes(CARD):
                     ui.label('🎯 Activity & Goals').classes(SECTION_TITLE)
@@ -577,7 +597,7 @@ def change_data():
                     
                     ui.separator().classes('my-4 bg-emerald-200')
                     ui.label('⚠️ Important').classes(SECTION_TITLE)
-                    ui.label('Update your information carefully. Weight changes are recorded automatically.').classes('text-gray-600')
+                    ui.label('Update your information carefully. Weight changes are recorded automatically.').classes('text-gray-600 text-sm')
 
         def save():
             bmi = calculate_bmi(weight.value, height.value)
@@ -605,7 +625,7 @@ def change_data():
             ui.navigate.to('/')
 
         with ui.row().classes('w-full max-w-6xl mt-4'):
-            ui.button("💾 Save Changes", on_click=save).classes(BTN + " w-full")
+            ui.button("💾 Save Changes", on_click=save).classes(BTN + " w-full").props('color=teal-6 text-color=white')
 
 
 # ----------------------------------------
@@ -641,7 +661,7 @@ def add_log():
                 else:
                     ui.notify("Please fill in all required fields", type='warning')
 
-            ui.button("💾 Save Log", on_click=save_log).classes(BTN + " mt-4 w-full")
+            ui.button("💾 Save Log", on_click=save_log).classes(BTN + " mt-4 w-full").props('color=teal-6 text-color=white')
 
 
 # ----------------------------------------
