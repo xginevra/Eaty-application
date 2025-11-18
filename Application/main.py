@@ -350,27 +350,39 @@ def home():
                                             df_cumulative = pd.DataFrame(cumulative_data)
                                             
                                             # Create figure with smooth lines
-                                            fig = px.line(df_cumulative, x='time', y=['Intake', 'Burned', 'Net'],
+                                            fig = px.line(df_cumulative, x='time', y=['Intake', 'Burned'],
                                                         color_discrete_map={
                                                             'Intake': '#10b981',
                                                             'Burned': '#f59e0b',
-                                                            'Net': '#3b82f6'
+                                                           # 'Net': '#3b82f6'
                                                         },
                                                         markers=True)
                                             
                                             # Make lines smooth
                                             fig.update_traces(line_shape='spline', line=dict(width=3))
-                                            
-                                            # Add average intake line
-                                            avg_intake = df_cumulative['Intake'].iloc[-1] / len(df_cumulative) if len(df_cumulative) > 0 else 0
-                                            if avg_intake > 0:
+
+                                            # Calculate average intake per entry
+                                            avg_intake_rate = df_cumulative['Intake'].iloc[-1] / len(df_cumulative) if len(df_cumulative) > 0 else 0
+
+                                            # Add average intake line to chart
+                                            if avg_intake_rate > 0:
                                                 fig.add_hline(
-                                                    y=avg_intake, 
+                                                    y=avg_intake_rate, 
                                                     line_dash="dash", 
                                                     line_color="#6ee7b7",
-                                                    annotation_text=f"Avg Rate: {int(avg_intake)} cal/entry",
+                                                    annotation_text=f"Avg: {int(avg_intake_rate)} cal/entry",
                                                     annotation_position="right"
                                                 )
+
+                                            # Add average as a trace in the legend
+                                            fig.add_scatter(
+                                                x=[df_cumulative['time'].iloc[0], df_cumulative['time'].iloc[-1]],
+                                                y=[avg_intake_rate, avg_intake_rate],
+                                                mode='lines',
+                                                name='Avg Intake Rate',
+                                                line=dict(color='#6ee7b7', width=2, dash='dash'),
+                                                showlegend=True
+                                            )
                                             
                                             fig.update_layout(
                                                 plot_bgcolor='rgba(0,0,0,0)',
