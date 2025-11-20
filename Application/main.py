@@ -4,6 +4,9 @@ import sqlite3
 from datetime import datetime, date
 from dbfile import insert_user, update_user, insert_log, get_logs, insert_weight, get_weight_history
 import plotly.express as px
+from ml_models import get_predicted_intake_target, propose_exercise
+from utils import calculate_bmi, calculate_bmr, calculate_body_fat, calculate_avg_burn
+
 
 # ----------------------------------------
 # Database
@@ -99,6 +102,39 @@ def home():
             ui.label("No user found. Please add your data first.").classes(TITLE)
             ui.button("➕ Add User", on_click=lambda: ui.navigate.to('/new-user')).classes(BTN).props('color=teal-6 text-color=white')
         return
+    
+    # --- ML Input Calculation ---
+    # 💡 NEW: Pull targets directly from user object (updated from DB)
+    target_weight_kg = user.get('target_weight_kg', user['weight_kg'])
+    duration_weeks = user.get('goal_duration_weeks', 12)
+    
+    # Calculate required average calorie burn from logs
+    avg_burn = calculate_avg_burn(user)
+
+    # --- Calculate ML Predictions ---
+    try:
+        # 1. Predict Target Intake
+        daily_target = get_predicted_intake_target(
+            user, 
+            target_weight_kg, 
+            duration_weeks, 
+            avg_burn
+        )
+        
+        # 2. Propose Exercise, using the result from the first model
+        suggested_exercise = propose_exercise(
+            user, 
+            target_weight_kg, 
+            duration_weeks, 
+            avg_burn,
+            daily_target # Pass the predicted intake as a feature!
+        )
+        
+    except Exception as e:
+        print(f"ML Prediction Error: {e}")
+        # Set safe default values if the ML prediction fails
+        daily_target = "N/A (Error)" 
+        suggested_exercise = "N/A (Error)"
 
     user_id = user['id']
 
@@ -116,8 +152,13 @@ def home():
                     ui.label(f"{user['name']} — {user['age']} years, {user['gender']}").classes('text-gray-700 text-sm')
                     ui.label(f"📏 {user['height_cm']} cm").classes('text-gray-700 text-sm')
                     ui.label(f"⚖️ {user['weight_kg']} kg").classes('text-gray-700 text-sm')
-                    ui.label(f"🏃 {user['activity_level']}").classes('text-gray-700 text-sm')
-                    ui.label(f"🎯 {user['goal']}").classes('text-gray-700 text-sm')
+                    ui.separator().classes('my-2 bg-emerald-200')
+
+                    ui.label("🔥 Daily Calorie Target").classes('text-gray-600 font-semibold text-sm')
+                    ui.label(f"{daily_target} cal").classes('text-xl font-bold text-teal-600')
+                    
+                    ui.label("🏋️ Suggested Exercise").classes('text-gray-600 font-semibold text-sm mt-2')
+                    ui.label(f"{suggested_exercise}").classes('text-sm italic text-gray-700')
 
                     ui.separator().classes('my-3 bg-emerald-200')
 
@@ -233,8 +274,8 @@ def home():
                             today_logs = df_logs[df_logs['date'] == today]
                             
                             if not today_logs.empty:
-                                meal_logs = today_logs[today_logs['type'] == 'Meal']
-                                exercise_logs = today_logs[today_logs['type'] == 'Exercise']
+                                meal_logs = today_logs[today_logs['type'] == 'meal']
+                                exercise_logs = today_logs[today_logs['type'] == 'exercise']
                                 
                                 calories_in = meal_logs['calories'].sum() if not meal_logs.empty else 0
                                 # Exercise calories are stored as negative, so we negate them to show positive burn
@@ -325,8 +366,8 @@ def home():
                                         today_logs['time'] = pd.to_datetime(today_logs['timestamp']).dt.strftime('%H:%M')
                                         
                                         # Separate meals and exercise
-                                        meals = today_logs[today_logs['type'] == 'Meal'].copy()
-                                        exercises = today_logs[today_logs['type'] == 'Exercise'].copy()
+                                        meals = today_logs[today_logs['type'] == 'meal'].copy()
+                                        exercises = today_logs[today_logs['type'] == 'exercise'].copy()
                                         
                                         # Create cumulative tracking
                                         cumulative_data = []
@@ -334,7 +375,7 @@ def home():
                                         cumulative_burned = 0
                                         
                                         for idx, row in today_logs.iterrows():
-                                            if row['type'] == 'Meal':
+                                            if row['type'] == 'meal':
                                                 cumulative_intake += row['calories']
                                             else:  # Exercise
                                                 cumulative_burned += -row['calories']
@@ -427,9 +468,9 @@ def home():
                                             
                                             with ui.column().classes('w-full gap-2'):
                                                 for idx, row in today_logs.iterrows():
-                                                    icon = '🍽️' if row['type'] == 'Meal' else '🏃'
-                                                    cal_sign = '+' if row['type'] == 'Meal' else '-'
-                                                    cal_color = 'text-green-600' if row['type'] == 'Meal' else 'text-orange-600'
+                                                    icon = '🍽️' if row['type'] == 'meal' else '🏃'
+                                                    cal_sign = '+' if row['type'] == 'meal' else '-'
+                                                    cal_color = 'text-green-600' if row['type'] == 'meal' else 'text-orange-600'
                                                     
                                                     with ui.card().classes('p-3 bg-gray-50 border border-gray-200 rounded-lg'):
                                                         with ui.row().classes('w-full items-center justify-between'):
@@ -524,17 +565,27 @@ def new_user():
             # Right column - Activity & Goals
             with ui.column().classes('flex-1 gap-4'):
                 with ui.card().classes(CARD):
-                    ui.label('🎯 Activity & Goals').classes(SECTION_TITLE)
-                    activity = ui.select(['Low', 'Medium', 'High'], label='Activity Level').classes('w-full')
-                    goal = ui.select(['Lose Weight', 'Maintain', 'Gain Muscle'], label='Goal').classes('w-full')
+                    ui.label('🎯 Goal & Timeframe').classes(SECTION_TITLE)
+                    target_weight = ui.number('Target Weight (kg)', value=weight.value, precision=1).classes('w-full')
+                    duration = ui.number('Goal Duration (weeks)', value=12, precision=0).classes('w-full')
                     
                     ui.separator().classes('my-4 bg-emerald-200')
                     ui.label('ℹ️ Instructions').classes(SECTION_TITLE)
                     ui.label('Fill in all information accurately. BMI, BMR, and body fat % will be calculated automatically.').classes('text-gray-600 mb-2 text-sm')
                     ui.label('• Height and weight are required').classes('text-sm text-gray-500')
-                    ui.label('• Body measurements help track progress').classes('text-sm text-gray-500')
+                    ui.label('• Body measurements help track progress and are highly recommended').classes('text-sm text-gray-500')
 
         def submit():
+            activity_level_default = 'Medium' # Assuming average activity level
+            
+            # Infer the Goal from the weights (Lose/Maintain/Gain)
+            if target_weight.value < weight.value:
+                goal_default = 'Lose Weight'
+            elif target_weight.value > weight.value:
+                goal_default = 'Gain Muscle'
+            else:
+                goal_default = 'Maintain'
+                
             bmi = calculate_bmi(weight.value, height.value)
             bmr = calculate_bmr(weight.value, height.value, age.value, gender.value)
             body_fat = calculate_body_fat(bmi, age.value, gender.value)
@@ -548,8 +599,10 @@ def new_user():
                 'neck_cm': neck.value,
                 'waist_cm': waist.value,
                 'hip_cm': hip.value,
-                'activity_level': activity.value,
-                'goal': goal.value,
+                'target_weight_kg': target_weight.value, 
+                'goal_duration_weeks': int(duration.value),
+                'activity_level': activity_level_default,
+                'goal': goal_default,
                 'bmi': bmi,
                 'bmr': bmr,
                 'body_fat': body_fat,
@@ -603,15 +656,25 @@ def change_data():
             # Right column - Activity & Goals
             with ui.column().classes('flex-1 gap-4'):
                 with ui.card().classes(CARD):
-                    ui.label('🎯 Activity & Goals').classes(SECTION_TITLE)
-                    activity = ui.select(['Low', 'Medium', 'High'], value=user['activity_level'], label='Activity Level').classes('w-full')
-                    goal = ui.select(['Lose Weight', 'Maintain', 'Gain Muscle'], value=user['goal'], label='Goal').classes('w-full')
+                    ui.label('🎯 Goal & Timeframe').classes(SECTION_TITLE)
+                    target_weight = ui.number('Target Weight (kg)', value=user['target_weight_kg'], precision=1).classes('w-full')
+                    duration = ui.number('Goal Duration (weeks)', value=user['goal_duration_weeks'], precision=0).classes('w-full')
                     
                     ui.separator().classes('my-4 bg-emerald-200')
                     ui.label('⚠️ Important').classes(SECTION_TITLE)
                     ui.label('Update your information carefully. Weight changes are recorded automatically.').classes('text-gray-600 text-sm')
 
         def save():
+            activity_level_db = user['activity_level']
+            
+            # Infer the Goal from the new target weights
+            if target_weight.value < weight.value:
+                goal_default = 'Lose Weight'
+            elif target_weight.value > weight.value:
+                goal_default = 'Gain Muscle'
+            else:
+                goal_default = 'Maintain'
+            # -----------------------------------
             bmi = calculate_bmi(weight.value, height.value)
             bmr = calculate_bmr(weight.value, height.value, age.value, gender.value)
             body_fat = calculate_body_fat(bmi, age.value, gender.value)
@@ -625,8 +688,10 @@ def change_data():
                 'neck_cm': neck.value,
                 'waist_cm': waist.value,
                 'hip_cm': hip.value,
-                'activity_level': activity.value,
-                'goal': goal.value,
+                'target_weight_kg': target_weight.value,
+                'goal_duration_weeks': int(duration.value),
+                'activity_level': activity_level_db,
+                'goal': goal_default,
                 'bmi': bmi,
                 'bmr': bmr,
                 'body_fat': body_fat

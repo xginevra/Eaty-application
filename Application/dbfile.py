@@ -7,6 +7,11 @@ from datetime import datetime
 conn = sqlite3.connect('fitnessapp.db', check_same_thread=False)
 c = conn.cursor()
 
+def clear_logs():
+    c.execute("DELETE FROM logs")
+    c.execute("DELETE FROM sqlite_sequence WHERE name='logs'")  # resets autoincrement
+    conn.commit()
+
 # Users table
 c.execute('''CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +44,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS logs (
     timestamp TEXT
 )''')
 conn.commit()
-
 
 # ---------------------------
 # CRUD helper functions
@@ -99,12 +103,20 @@ def update_user(user_id, data):
     ))
     conn.commit()
 
-
-def insert_log(user_id, log_type, content, satisfaction, calories=0):
+def insert_log(user_id, log_type, content, satisfaction, calories=0, timestamp=None):
+    if timestamp is None:
+        timestamp = datetime.utcnow().isoformat()
     c.execute('''INSERT INTO logs (user_id, type, content, satisfaction, calories, timestamp)
                  VALUES (?, ?, ?, ?, ?, ?)''',
-              (user_id, log_type, content, satisfaction, calories, datetime.utcnow().isoformat()))
+              (user_id, log_type, content, satisfaction, calories, timestamp))
     conn.commit()
+
+
+#def insert_log(user_id, log_type, content, satisfaction, calories=0):
+ #   c.execute('''INSERT INTO logs (user_id, type, content, satisfaction, calories, timestamp)
+  #               VALUES (?, ?, ?, ?, ?, ?)''',
+   #           (user_id, log_type, content, satisfaction, calories, datetime.utcnow().isoformat()))
+    #conn.commit()
 
 
 def get_logs():
