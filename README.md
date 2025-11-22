@@ -8,6 +8,8 @@ if you want to try the app:
 4. create a virtual env using the command <code> python -m venv eaty-venv </code>
 5. activate the venv using command <code> .\eaty-venv\Scripts\activate </code>
 6. install requirements into the created venv using command <code> pip install -r requirements.txt </code>
-7. run command <code> python main.py </code>
-8. it should open a browser that runs the application <3
+7. you'll need to train the models because the joblob files were too big to upload - it's the train_calorie_model.py and the train_exercise_model.py, respectively. - just do the <code>python train_calorie_model.py</code> and same for the other model.py file
+8. run command <code> python main.py </code>
+9. it should open a browser that runs the application <3
+
 
