@@ -4,3 +4,7 @@ __pycache__/
 .eaty-venv
 eaty-venv/
 venv/
+Application/inputweights.py
+Application/insertloggings.py
+fitnessapp.db
+weight_loss_training_data.csv

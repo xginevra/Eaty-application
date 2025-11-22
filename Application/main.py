@@ -118,7 +118,7 @@ def home():
             user, 
             target_weight_kg, 
             duration_weeks, 
-            avg_burn
+            #avg_burn
         )
         
         # 2. Propose Exercise, using the result from the first model
@@ -126,7 +126,7 @@ def home():
             user, 
             target_weight_kg, 
             duration_weeks, 
-            avg_burn,
+           # avg_burn,
             daily_target # Pass the predicted intake as a feature!
         )
         

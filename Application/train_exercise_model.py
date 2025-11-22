@@ -29,7 +29,7 @@ X = df[
         "start_bmi",
         "target_bmi",
         "avg_calorie_intake",
-        "avg_calorie_burn",
+       # "avg_calorie_burn",
     ]
 ]
 y = df["main_exercise"]

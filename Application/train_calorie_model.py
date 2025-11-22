@@ -12,7 +12,7 @@ df = pd.read_csv("weight_loss_training_data.csv")
 
 # Encode categorical feature 'sex'
 le_sex = LabelEncoder()
-df["sex"] = le_sex.fit_transform(df["sex"])  # Male=1, Female=0 (typically)
+df["sex"] = le_sex.fit_transform(df["sex"])  # Male=1, Female=0
 
 # Define features and target
 X = df[
@@ -25,7 +25,7 @@ X = df[
         "duration_weeks",
         "start_bmi",
         "target_bmi",
-        "avg_calorie_burn",
+       # "avg_calorie_burn",
     ]
 ]
 y = df["avg_calorie_intake"]

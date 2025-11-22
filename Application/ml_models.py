@@ -27,14 +27,14 @@ def _encode_sex(gender_label):
         return 1 # Fallback
 
 
-def get_predicted_intake_target(user, target_weight_kg, duration_weeks, avg_calorie_burn):
+def get_predicted_intake_target(user, target_weight_kg, duration_weeks):
     """
     Predicts the required daily calorie intake using the Random Forest Regressor model.
     """
     if CALORIE_MODEL is None or SEX_ENCODER is None:
         # Simple rule-based fallback if model is missing
-        tdee = user['bmr'] * (1.55 if user['activity_level'] == 'Medium' else 1.2)
-        target_intake = tdee - 500 if user['goal'] == 'Lose Weight' else tdee
+        tdee = user['bmr'] #* (1.55 if user['activity_level'] == 'Medium' else 1.2)
+        target_intake = tdee - 500 # if user['goal'] == 'Lose Weight' else tdee
         return int(max(1200, target_intake))
 
     # --- Feature Engineering ---
@@ -54,7 +54,7 @@ def get_predicted_intake_target(user, target_weight_kg, duration_weeks, avg_calo
         "duration_weeks": duration_weeks,
         "start_bmi": start_bmi,
         "target_bmi": target_bmi,
-        "avg_calorie_burn": abs(avg_calorie_burn),
+   #     "avg_calorie_burn": abs(avg_calorie_burn),
     }])
 
     # --- Prediction ---
@@ -64,7 +64,7 @@ def get_predicted_intake_target(user, target_weight_kg, duration_weeks, avg_calo
     return int(round(safe_intake / 10.0) * 10)
 
 
-def propose_exercise(user, target_weight_kg, duration_weeks, avg_calorie_burn, predicted_intake):
+def propose_exercise(user, target_weight_kg, duration_weeks, predicted_intake):
     """
     Predicts the suggested main exercise using the Random Forest Classifier model.
     """
@@ -94,7 +94,7 @@ def propose_exercise(user, target_weight_kg, duration_weeks, avg_calorie_burn, p
         "target_bmi": target_bmi,
         # Crucially, include the prediction from the first model
         "avg_calorie_intake": predicted_intake, 
-        "avg_calorie_burn": abs(avg_calorie_burn),
+       # "avg_calorie_burn": abs(avg_calorie_burn),
     }])
 
     # --- Prediction ---
