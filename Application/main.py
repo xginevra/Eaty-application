@@ -219,8 +219,10 @@ def home():
 
                             def log_meal():
                                 if meal_desc.value and meal_cals.value:
-                                    insert_log(user_id, 'Meal', meal_desc.value, meal_satisfaction.value, meal_cals.value)
+                                    insert_log(user_id, 'meal', meal_desc.value, meal_satisfaction.value, meal_cals.value)
                                     ui.notify(f"Meal logged! +{int(meal_cals.value)} cal", type='positive')
+                                    if view_state['current'] == 'calories':
+                                        render_content()
                                     # Update today's balance
                                     update_balance()
                                     meal_desc.value = ''
@@ -242,8 +244,10 @@ def home():
                             def log_exercise():
                                 if exercise_desc.value and exercise_cals.value:
                                     # Store as negative calories to indicate burn
-                                    insert_log(user_id, 'Exercise', exercise_desc.value, exercise_satisfaction.value, -exercise_cals.value)
+                                    insert_log(user_id, 'exercise', exercise_desc.value, exercise_satisfaction.value, -exercise_cals.value)
                                     ui.notify(f"Exercise logged! -{int(exercise_cals.value)} cal", type='positive')
+                                    if view_state['current'] == 'calories':
+                                        render_content()
                                     # Update today's balance
                                     update_balance()
                                     exercise_desc.value = ''
@@ -295,7 +299,6 @@ def home():
                             with ui.card().classes('p-2 bg-blue-50 border border-blue-200 rounded-lg flex-1 text-center'):
                                 ui.label("Net").classes('text-xs text-gray-600')
                                 ui.label(f"{int(net_calories):+}").classes('text-lg font-bold text-blue-600')
-                    
                     # Initial render
                     update_balance()
 
@@ -304,7 +307,7 @@ def home():
         # -------------------------
         with ui.column().classes('gap-6').style('width: 50%; min-width: 550px;'):
 
-            # Switchable Card with Flip Animation
+            # Switchable Card with Flip Animationc
             view_state = {'current': 'weight'}  # Track current view
             
             with ui.card().classes(WIDE_CARD).style('perspective: 1000px; min-height: 600px;'):
@@ -378,7 +381,7 @@ def home():
                                             if row['type'] == 'meal':
                                                 cumulative_intake += row['calories']
                                             else:  # Exercise
-                                                cumulative_burned += -row['calories']
+                                                cumulative_burned += abs(row['calories'])
                                             
                                             cumulative_data.append({
                                                 'time': row['time'],
@@ -723,7 +726,7 @@ def add_log():
         ui.label("🧾 Add Log Entry").classes(TITLE)
 
         with ui.card().classes(CARD + " max-w-2xl w-full"):
-            log_type = ui.select(['Meal', 'Exercise'], label="Log Type").classes('w-full')
+            log_type = ui.select(['meal', 'exercise'], label="Log Type").classes('w-full')
             content = ui.input("Description").classes('w-full')
             satisfaction = ui.number("Satisfaction (1-10)").classes('w-full')
             calories = ui.number("Calories").classes('w-full')
@@ -731,7 +734,7 @@ def add_log():
             def save_log():
                 if log_type.value and content.value and calories.value:
                     # If exercise, store as negative
-                    cal_value = -calories.value if log_type.value == 'Exercise' else calories.value
+                    cal_value = -calories.value if log_type.value == 'exercise' else calories.value
                     insert_log(user['id'], log_type.value, content.value, satisfaction.value or 5, cal_value)
                     ui.notify("Log added!", type='positive')
                     ui.navigate.to('/')

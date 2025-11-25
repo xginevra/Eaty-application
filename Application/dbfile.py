@@ -70,7 +70,8 @@ def insert_user(data):
         data['bmi'],
         data['bmr'],
         data['body_fat'],
-        datetime.utcnow().isoformat()
+        datetime.utcnow().replace(microsecond=0).isoformat()
+
     ))
     conn.commit()
     return c.lastrowid
@@ -98,14 +99,14 @@ def update_user(user_id, data):
         data['bmi'],
         data['bmr'],
         data['body_fat'],
-        datetime.utcnow().isoformat(),
+        datetime.utcnow().replace(microsecond=0).isoformat(),
         user_id
     ))
     conn.commit()
 
 def insert_log(user_id, log_type, content, satisfaction, calories=0, timestamp=None):
     if timestamp is None:
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.utcnow().replace(microsecond=0).isoformat()
     c.execute('''INSERT INTO logs (user_id, type, content, satisfaction, calories, timestamp)
                  VALUES (?, ?, ?, ?, ?, ?)''',
               (user_id, log_type, content, satisfaction, calories, timestamp))
@@ -139,7 +140,7 @@ conn.commit()
 
 def insert_weight(user_id, weight):
     c.execute('''INSERT INTO weight_progress (user_id, weight, recorded_at)
-                 VALUES (?, ?, ?)''', (user_id, weight, datetime.utcnow().isoformat()))
+                 VALUES (?, ?, ?)''', (user_id, weight, datetime.utcnow().replace(microsecond=0).isoformat()))
     conn.commit()
 
 
